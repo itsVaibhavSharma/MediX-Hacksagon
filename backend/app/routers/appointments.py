@@ -3,7 +3,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import uuid
 
 from app.models.database import User, Appointment
@@ -89,7 +89,7 @@ async def book_appointment(
         )
     
     # Check if appointment time is in the future
-    if appointment.appointment_date <= datetime.now():
+    if appointment.appointment_date <= datetime.now(timezone.utc):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Appointment must be scheduled for a future date"
