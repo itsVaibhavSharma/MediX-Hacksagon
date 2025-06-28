@@ -12,7 +12,7 @@ import ImageDetection from './components/Disease/ImageDetection'
 import SymptomChat from './components/Disease/SymptomChat'
 import BookAppointment from './components/Appointments/BookAppointment'
 import AppointmentList from './components/Appointments/AppointmentList'
-
+import HomePage from './components/HomePage'
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
   
@@ -48,6 +48,11 @@ function AppContent() {
     <div className="min-h-screen bg-slate-50">
       {user && <Header />}
       <Routes>
+        <Route path="/" element={
+          <PublicRoute>
+            <HomePage />
+          </PublicRoute>
+        } />
         {/* Public Routes */}
         <Route path="/login" element={
           <PublicRoute>

@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 logger = logging.getLogger(__name__)
 
 # Configure Gemini API
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+GEMINI_API_KEY = "AIzaSyC0ugrRxTrXw3-FASGPYEzb6FfBTqBDd4Y"
 genai.configure(api_key=GEMINI_API_KEY)
 
 class GeminiMedicalService:

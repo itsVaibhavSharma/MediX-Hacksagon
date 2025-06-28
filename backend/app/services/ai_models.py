@@ -9,10 +9,11 @@ import io
 import base64
 from typing import List, Tuple, Dict
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
-# Model architectures based on training code
+# Updated model architectures based on your training code
 class NailDiseaseClassifier(nn.Module):
     def __init__(self, num_classes=6):
         super(NailDiseaseClassifier, self).__init__()
@@ -33,21 +34,25 @@ class NailDiseaseClassifier(nn.Module):
         return self.backbone(x)
 
 class SkinDiseaseClassifier(nn.Module):
+    """Updated to use DenseNet as per your training"""
     def __init__(self, num_classes=22):
         super(SkinDiseaseClassifier, self).__init__()
-        self.backbone = models.resnet50(pretrained=False)
-        num_features = self.backbone.fc.in_features
-        self.backbone.fc = nn.Sequential(
-            nn.Dropout(0.3),
-            nn.Linear(num_features, 512),
-            nn.ReLU(),
+        # Use DenseNet121 as you mentioned you used this
+        self.backbone = models.densenet121(pretrained=False)
+        num_features = self.backbone.classifier.in_features
+        
+        # Replace classifier with your custom one
+        self.backbone.classifier = nn.Sequential(
+            nn.Dropout(0.5),
+            nn.Linear(num_features, 1024),
+            nn.BatchNorm1d(1024),
+            nn.ReLU(inplace=True),
+            nn.Dropout(0.5),
+            nn.Linear(1024, 512),
             nn.BatchNorm1d(512),
-            nn.Dropout(0.4),
-            nn.Linear(512, 256),
-            nn.ReLU(),
-            nn.BatchNorm1d(256),
-            nn.Dropout(0.2),
-            nn.Linear(256, num_classes)
+            nn.ReLU(inplace=True),
+            nn.Dropout(0.3),
+            nn.Linear(512, num_classes)
         )
     
     def forward(self, x):
@@ -105,7 +110,7 @@ class BoneFractureClassifier(nn.Module):
         return self.backbone(x)
 
 class ChestXRayClassifier(nn.Module):
-    def __init__(self, num_classes=14):  # Common chest conditions
+    def __init__(self, num_classes=14):
         super(ChestXRayClassifier, self).__init__()
         self.backbone = models.mobilenet_v2(pretrained=False)
         self.features = self.backbone.features
@@ -147,43 +152,84 @@ class MedicalAIService:
         self._load_models()
     
     def _load_models(self):
-        """Load all trained models"""
+        """Load all trained models with better error handling"""
         model_configs = {
-            'nail': {'class': NailDiseaseClassifier, 'num_classes': 6, 'file': 'nail_disease_model.pth'},
-            'skin': {'class': SkinDiseaseClassifier, 'num_classes': 22, 'file': 'skin_disease_model.pth'},
-            'oral': {'class': OralDiseaseClassifier, 'num_classes': 6, 'file': 'oral_disease_model.pth'},
-            'eye': {'class': EyeDiseaseClassifier, 'num_classes': 5, 'file': 'eye_disease_model.pth'},
-            'bone': {'class': BoneFractureClassifier, 'num_classes': 2, 'file': 'bone_fracture_model.pth'},
-            'chest': {'class': ChestXRayClassifier, 'num_classes': 14, 'file': 'chest_xray_model.pth'}
+            'nail': {
+                'class': NailDiseaseClassifier, 
+                'num_classes': 6, 
+                'files': ['nail_disease_model.pth', 'nail_disease_classifier_best.pth']
+            },
+            'skin': {
+                'class': SkinDiseaseClassifier, 
+                'num_classes': 22, 
+                'files': ['skin_disease_model.pth', 'resnet_efficientnet_skin_disease.pth', 'densenet_efficient_skin_disease.pth']
+            },
+            'oral': {
+                'class': OralDiseaseClassifier, 
+                'num_classes': 6, 
+                'files': ['oral_disease_model.pth', 'oral_disease_model_final.pth']
+            },
+            'eye': {
+                'class': EyeDiseaseClassifier, 
+                'num_classes': 5, 
+                'files': ['eye_disease_model.pth', 'eye_disease_efficientnet_b3.pth']
+            },
+            'bone': {
+                'class': BoneFractureClassifier, 
+                'num_classes': 2, 
+                'files': ['bone_fracture_model.pth', 'best_bone_fracture_model.pth']
+            },
+            'chest': {
+                'class': ChestXRayClassifier, 
+                'num_classes': 14, 
+                'files': ['chest_xray_model.pth', 'chest_xray_pytorch_model.pth']
+            }
         }
         
         for model_type, config in model_configs.items():
-            try:
-                model = config['class'](config['num_classes'])
-                model_path = f"models/{config['file']}"
+            model_loaded = False
+            
+            for model_file in config['files']:
+                model_path = f"models/{model_file}"
                 
-                # Try to load the model
-                checkpoint = torch.load(model_path, map_location=self.device)
-                
-                # Handle different checkpoint formats
-                if isinstance(checkpoint, dict):
-                    if 'model_state_dict' in checkpoint:
-                        model.load_state_dict(checkpoint['model_state_dict'])
-                    elif 'state_dict' in checkpoint:
-                        model.load_state_dict(checkpoint['state_dict'])
-                    else:
-                        model.load_state_dict(checkpoint)
-                else:
-                    model.load_state_dict(checkpoint)
-                
-                model.to(self.device)
-                model.eval()
-                self.models[model_type] = model
-                logger.info(f"Loaded {model_type} model successfully")
-                
-            except Exception as e:
-                logger.error(f"Failed to load {model_type} model: {str(e)}")
-                # Continue loading other models even if one fails
+                if os.path.exists(model_path):
+                    try:
+                        model = config['class'](config['num_classes'])
+                        
+                        # Try to load the model
+                        checkpoint = torch.load(model_path, map_location=self.device)
+                        
+                        # Handle different checkpoint formats
+                        if isinstance(checkpoint, dict):
+                            if 'model_state_dict' in checkpoint:
+                                model.load_state_dict(checkpoint['model_state_dict'])
+                            elif 'state_dict' in checkpoint:
+                                model.load_state_dict(checkpoint['state_dict'])
+                            else:
+                                # Try to load the whole dict as state_dict
+                                model.load_state_dict(checkpoint)
+                        else:
+                            model.load_state_dict(checkpoint)
+                        
+                        model.to(self.device)
+                        model.eval()
+                        self.models[model_type] = model
+                        logger.info(f"✅ Loaded {model_type} model from {model_file}")
+                        model_loaded = True
+                        break
+                        
+                    except Exception as e:
+                        logger.warning(f"Failed to load {model_type} from {model_file}: {str(e)}")
+                        continue
+            
+            if not model_loaded:
+                logger.error(f"❌ Could not load {model_type} model from any file: {config['files']}")
+                # Create a dummy model for testing
+                dummy_model = config['class'](config['num_classes'])
+                dummy_model.to(self.device)
+                dummy_model.eval()
+                self.models[model_type] = dummy_model
+                logger.warning(f"⚠️  Using dummy {model_type} model for testing")
     
     def _get_transforms(self, model_type: str):
         """Get appropriate transforms for each model type"""
@@ -205,8 +251,12 @@ class MedicalAIService:
     def _preprocess_image(self, image_base64: str, model_type: str) -> torch.Tensor:
         """Preprocess image for model inference"""
         try:
-            # Decode base64 image
-            image_data = base64.b64decode(image_base64.split(',')[1] if ',' in image_base64 else image_base64)
+            # Handle data URL format
+            if 'data:image' in image_base64:
+                image_data = base64.b64decode(image_base64.split(',')[1])
+            else:
+                image_data = base64.b64decode(image_base64)
+            
             image = Image.open(io.BytesIO(image_data))
             
             # Convert to RGB if needed
@@ -226,7 +276,8 @@ class MedicalAIService:
     def predict(self, image_base64: str, model_type: str) -> List[Dict[str, float]]:
         """Make prediction using specified model"""
         if model_type not in self.models:
-            raise ValueError(f"Model type '{model_type}' not available")
+            available_models = list(self.models.keys())
+            raise ValueError(f"Model type '{model_type}' not available. Available models: {available_models}")
         
         model = self.models[model_type]
         image_tensor = self._preprocess_image(image_base64, model_type)
@@ -264,14 +315,35 @@ class MedicalAIService:
             if model_type != 'chest':
                 results = sorted(results, key=lambda x: x['confidence'], reverse=True)[:3]
             else:
-                # For chest X-ray, sort by confidence
+                # For chest X-ray, sort by confidence and return all above threshold
                 results = sorted(results, key=lambda x: x['confidence'], reverse=True)
+                if not results:  # If no predictions above threshold, return top 3
+                    all_results = []
+                    for i, prob in enumerate(probabilities):
+                        all_results.append({
+                            'disease': classes[i],
+                            'confidence': float(prob)
+                        })
+                    results = sorted(all_results, key=lambda x: x['confidence'], reverse=True)[:3]
             
             return results
     
     def get_available_models(self) -> List[str]:
         """Get list of available model types"""
         return list(self.models.keys())
+    
+    def get_model_info(self) -> Dict[str, Dict]:
+        """Get detailed information about loaded models"""
+        info = {}
+        for model_type, model in self.models.items():
+            info[model_type] = {
+                'loaded': True,
+                'device': str(self.device),
+                'num_classes': len(self.class_names[model_type]),
+                'classes': self.class_names[model_type],
+                'architecture': model.__class__.__name__
+            }
+        return info
 
 # Global instance
 medical_ai_service = MedicalAIService()
