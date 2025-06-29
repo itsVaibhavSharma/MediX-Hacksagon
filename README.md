@@ -57,7 +57,7 @@ Our platform includes trained models for detecting various medical conditions:
 
 ### Clone Repository
 ```bash
-git clone <repository-url>
+git clone https://github.com/itsVaibhavSharma/MediX-Hacksagon
 cd medix
 ```
 
