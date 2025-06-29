@@ -13,7 +13,7 @@ Medix offers a comprehensive solution for medical diagnosis combining image-base
 - **Symptom-Based Consultation**: Interactive chat with AI for symptom analysis and health guidance
 - **Doctor Recommendations**: Find nearby specialists based on detected conditions and location
 - **Appointment Scheduling**: Book consultations with integrated Google Meet sessions
-- **Personalized Health History**: RAG-based chat system that maintains conversation context
+- **Personalized Health History**: AI chat system that maintains conversation context
 
 ### For Doctors
 - **Professional Dashboard**: Manage patient appointments and consultations
@@ -36,7 +36,6 @@ Our platform includes trained models for detecting various medical conditions:
 ### Frontend
 - **React**: Modern UI framework for responsive web application
 - **Tailwind CSS**: Utility-first CSS framework for beautiful, responsive design
-- **Medium-toned Theme**: Carefully designed UI with focus on accessibility and user experience
 
 ### Backend
 - **FastAPI**: High-performance Python web framework
@@ -46,7 +45,7 @@ Our platform includes trained models for detecting various medical conditions:
 ### AI & Machine Learning
 - **Custom Trained Models**: Specialized models for each medical domain
 - **Gemini API**: Advanced AI integration for symptom analysis and consultation
-- **RAG (Retrieval-Augmented Generation)**: Personalized chat experience with memory
+- **Intelligent Chat System**: Personalized chat experience with conversation memory
 
 ## Installation & Setup
 
@@ -54,6 +53,13 @@ Our platform includes trained models for detecting various medical conditions:
 - Python 3.8+
 - Node.js 16+
 - npm or yarn
+- Gemini API key
+
+### Clone Repository
+```bash
+git clone <repository-url>
+cd medix
+```
 
 ### Backend Setup
 1. Navigate to the backend directory:
@@ -88,7 +94,13 @@ Our platform includes trained models for detecting various medical conditions:
    ```
 
 ### Environment Configuration
-Create a `.env` file in the root directory with necessary environment variables for API keys and configuration.
+Create a `.env` file in the root directory with the following variables:
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
+# Add other necessary environment variables
+```
+
+**Note**: You need to obtain your own Gemini API key from Google AI Studio and add it to the environment file for the AI chat functionality to work properly.
 
 ## Project Structure
 
@@ -179,7 +191,7 @@ medix/
 8. **Doctor Recommendation**: Suggest nearby specialists based on diagnosis and location
 
 ### Symptom-Based Consultation
-1. **Interactive Chat**: RAG-based conversation with AI
+1. **Interactive Chat**: Intelligent conversation with AI for symptom analysis
 2. **Symptom Analysis**: Personalized health guidance based on described symptoms
 3. **Medical History**: System recalls and references past interactions
 4. **Professional Referral**: Recommend appropriate medical specialists when needed
@@ -198,6 +210,6 @@ This project is developed by a dedicated team of students:
 - **Prasanna Saxena** - [prasannasaxena4@gmail.com](mailto:prasannasaxena4@gmail.com)
 - **Akshara Rathore** - [itsakshararathore@gmail.com](mailto:itsakshararathore@gmail.com)
 
-## License
+## Hackathon Context
 
-This project is developed for educational and hackathon purposes. Please ensure appropriate licensing before any commercial use.
+Developed for **Hacksagon** - a collaborative hackathon by IIITM (Indian Institute of Information Technology, Manipur) and IEEE, focusing on innovative solutions in healthcare technology.
